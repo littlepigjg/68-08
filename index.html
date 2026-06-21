@@ -42,6 +42,37 @@
                 </div>
 
                 <div class="control-section">
+                    <h3>🖼️ 样式迁移</h3>
+                    <p class="section-desc">上传手写参考图片，自动分析笔触特征并应用到当前文本</p>
+                    <div class="style-transfer-area">
+                        <label for="referenceImage" class="upload-label image-upload-label">
+                            <div class="upload-placeholder">
+                                <span class="upload-icon">📷</span>
+                                <span class="upload-text">上传手写参考图片</span>
+                                <span class="upload-hint">支持 JPG、PNG 格式</span>
+                            </div>
+                        </label>
+                        <input type="file" id="referenceImage" accept="image/*" style="display:none">
+                        <div class="reference-preview" id="referencePreview" style="display:none">
+                            <img id="previewImg" alt="参考图片预览">
+                            <div class="reference-actions">
+                                <button id="analyzeStyleBtn" class="btn-small btn-primary">分析并应用</button>
+                                <button id="clearReferenceBtn" class="btn-small btn-secondary">清除</button>
+                            </div>
+                        </div>
+                        <div class="analysis-result" id="analysisResult" style="display:none">
+                            <h4>特征分析结果</h4>
+                            <ul class="feature-list">
+                                <li><span>倾斜角度</span><span id="featSlant">-</span></li>
+                                <li><span>墨迹浓度</span><span id="featInk">-</span></li>
+                                <li><span>笔画粗细</span><span id="featStroke">-</span></li>
+                                <li><span>笔触纹理</span><span id="featTexture">-</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
                     <h3>⚙️ 参数调节</h3>
                     
                     <div class="param-group">
@@ -186,6 +217,7 @@
     <script src="js/styles.js"></script>
     <script src="js/paperEffects.js"></script>
     <script src="js/textEffects.js"></script>
+    <script src="js/styleTransfer.js"></script>
     <script src="js/exportManager.js"></script>
     <script src="js/fontManager.js"></script>
     <script src="js/eventHandlers.js"></script>

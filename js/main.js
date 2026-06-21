@@ -10,6 +10,9 @@ class HandwritingApp {
         this.currentStyle = 'kaishu';
         this.customFontFamily = null;
         this.debounceTimer = null;
+        this.referenceImage = null;
+        this.referenceFeatures = null;
+        this.referenceParams = null;
         
         this.init();
     }

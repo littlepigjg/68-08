@@ -261,6 +261,117 @@ class EventHandlers {
         }
     }
 
+    bindStyleTransfer() {
+        document.getElementById('referenceImage').addEventListener('change', (e) => {
+            this.handleReferenceImageUpload(e.target.files[0]);
+        });
+
+        document.getElementById('analyzeStyleBtn').addEventListener('click', () => {
+            this.analyzeAndApplyStyle();
+        });
+
+        document.getElementById('clearReferenceBtn').addEventListener('click', () => {
+            this.clearReferenceImage();
+        });
+    }
+
+    handleReferenceImageUpload(file) {
+        if (!file) return;
+
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/bmp'];
+        if (!validTypes.includes(file.type)) {
+            alert('请上传 JPG、PNG、WebP 或 BMP 格式的图片');
+            return;
+        }
+
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('图片文件过大（最大10MB），请选择较小的图片');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                this.app.referenceImage = img;
+                
+                const previewImg = document.getElementById('previewImg');
+                previewImg.src = e.target.result;
+                
+                document.querySelector('.image-upload-label').style.display = 'none';
+                document.getElementById('referencePreview').style.display = 'block';
+                document.getElementById('analysisResult').style.display = 'none';
+                
+                this.app.referenceFeatures = null;
+                this.app.referenceParams = null;
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async analyzeAndApplyStyle() {
+        if (!this.app.referenceImage) {
+            alert('请先上传参考图片');
+            return;
+        }
+
+        this.app.showLoading();
+
+        try {
+            const { features, params } = await StyleTransfer.analyzeAndMap(this.app.referenceImage);
+            
+            this.app.referenceFeatures = features;
+            this.app.referenceParams = params;
+            
+            this.updateFeatureDisplay(features, params);
+            
+            this.app.renderer.setOptions(params);
+            this.updateUIFromOptions(params);
+            
+            this.app.generatePreview();
+            
+            document.getElementById('analysisResult').style.display = 'block';
+            
+        } catch (error) {
+            console.error('样式分析失败:', error);
+            alert('样式分析失败，请重试或更换参考图片');
+        } finally {
+            this.app.hideLoading();
+        }
+    }
+
+    updateFeatureDisplay(features, params) {
+        document.getElementById('featSlant').textContent = 
+            features.slantAngle.toFixed(1) + '°';
+        
+        const inkLevel = features.inkDensityScore < 0.4 ? '淡' : 
+                         features.inkDensityScore < 0.7 ? '中' : '浓';
+        document.getElementById('featInk').textContent = inkLevel;
+        
+        const strokeLevel = features.normalizedStrokeWidth < 0.8 ? '细' :
+                           features.normalizedStrokeWidth < 1.5 ? '中' : '粗';
+        document.getElementById('featStroke').textContent = strokeLevel;
+        
+        const textureLevel = features.strokeTexture < 0.2 ? '平滑' :
+                            features.strokeTexture < 0.5 ? '自然' : '粗糙';
+        document.getElementById('featTexture').textContent = textureLevel;
+    }
+
+    clearReferenceImage() {
+        this.app.referenceImage = null;
+        this.app.referenceFeatures = null;
+        this.app.referenceParams = null;
+        
+        document.getElementById('referenceImage').value = '';
+        document.getElementById('previewImg').src = '';
+        
+        document.querySelector('.image-upload-label').style.display = 'block';
+        document.getElementById('referencePreview').style.display = 'none';
+        document.getElementById('analysisResult').style.display = 'none';
+    }
+
     bindAll() {
         this.bindStyleButtons();
         this.bindColorButtons();
@@ -269,6 +380,7 @@ class EventHandlers {
         this.bindActionButtons();
         this.bindPageNavigation();
         this.bindFontUpload();
+        this.bindStyleTransfer();
         this.bindKeyboardShortcuts();
     }
 }
